@@ -1,0 +1,47 @@
+.mod-videopredict .videopredict-player-shell {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mod-videopredict .videopredict-timeline {
+    position: relative;
+    height: 14px;
+    margin-top: .4rem;
+    border-radius: 8px;
+    background: var(--bs-secondary-bg, #e9ecef);
+    overflow: visible;
+}
+
+.mod-videopredict .videopredict-marker {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    margin-left: -7px;
+    margin-top: -7px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #6c757d;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .25);
+}
+
+.mod-videopredict .videopredict-marker.is-required {
+    background: #dc3545;
+}
+
+.mod-videopredict .videopredict-marker.is-answered {
+    background: #198754;
+}
+
+.mod-videopredict .videopredict-marker[data-position-ready="1"] {
+    left: var(--point-left);
+}
+
+.mod-videopredict [data-region="iframe-player"] iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}

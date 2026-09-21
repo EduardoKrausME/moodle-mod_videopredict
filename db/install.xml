@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/videopredict/db" VERSION="20260920" COMMENT="XMLDB file for Video Prediction"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+    <TABLES>
+        <TABLE NAME="videopredict" COMMENT="Video Prediction activities">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="videosource" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="url" SEQUENCE="false"/>
+                <FIELD NAME="videourl" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="posterurl" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="preventseek" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="resumeplayback" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="completionpredictions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="completionpercent" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="grademode" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="predictions" SEQUENCE="false"/>
+                <FIELD NAME="grade" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="100"
+                       SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="coursefk" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="courseidx" UNIQUE="false" FIELDS="course,name"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="videopredict_points" COMMENT="Prediction points">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="videopredictid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timeposition" TYPE="number" LENGTH="12" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="revealposition" TYPE="number" LENGTH="12" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="question" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="questionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="responsetype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="open" SEQUENCE="false"/>
+                <FIELD NAME="optionsjson" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="correctanswer" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="resulttext" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="resultformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="reflectionquestion" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="reflectionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="required" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+                <FIELD NAME="pauseonreveal" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="points" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="1"
+                       SEQUENCE="false"/>
+                <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="activityfk" TYPE="foreign" FIELDS="videopredictid" REFTABLE="videopredict" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="activitytimeidx" UNIQUE="false" FIELDS="videopredictid,timeposition"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="videopredict_responses" COMMENT="Prediction responses and reflections">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="pointid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="response" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="responsejson" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="iscorrect" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="-1" SEQUENCE="false"/>
+                <FIELD NAME="awarded" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="reflection" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="understandingchanged" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="-1" SEQUENCE="false"/>
+                <FIELD NAME="predictiontime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="reflectiontime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="gradedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="pointfk" TYPE="foreign" FIELDS="pointid" REFTABLE="videopredict_points" REFFIELDS="id"/>
+                <KEY NAME="userfk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="pointuseruniq" UNIQUE="true" FIELDS="pointid,userid"/>
+                <INDEX NAME="useridx" UNIQUE="false" FIELDS="userid,pointid"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="videopredict_progress" COMMENT="Consolidated watched progress">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="videopredictid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="duration" TYPE="number" LENGTH="12" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="lastposition" TYPE="number" LENGTH="12" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="maxwatched" TYPE="number" LENGTH="12" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="uniquewatched" TYPE="number" LENGTH="12" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="totalwatchtime" TYPE="number" LENGTH="14" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="percent" TYPE="number" LENGTH="7" DECIMALS="3" NOTNULL="true" DEFAULT="0"
+                       SEQUENCE="false"/>
+                <FIELD NAME="segments" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="completed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="activityfk" TYPE="foreign" FIELDS="videopredictid" REFTABLE="videopredict" REFFIELDS="id"/>
+                <KEY NAME="userfk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="activityuseruniq" UNIQUE="true" FIELDS="videopredictid,userid"/>
+                <INDEX NAME="activitypercentidx" UNIQUE="false" FIELDS="videopredictid,percent"/>
+            </INDEXES>
+        </TABLE>
+    </TABLES>
+</XMLDB>
