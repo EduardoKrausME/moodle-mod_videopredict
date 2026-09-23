@@ -45,3 +45,9 @@
     height: 100%;
     border: 0;
 }
+/* Let the primary player use the full activity content width. */
+.mod-videopredict .videopredict-player-shell {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+}
