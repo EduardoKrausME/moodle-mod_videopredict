@@ -89,7 +89,7 @@ if ($download === 'csv') {
         get_string('correctanswers', 'videopredict'),
         get_string('understandingchanges', 'videopredict'),
         get_string('watchedpercent', 'videopredict'),
-        get_string('grade'),
+        get_string('grade', 'grades'),
     ]);
     foreach ($rows as $row) {
         $csv->add_data([
@@ -117,7 +117,7 @@ $table->head = [get_string('student', 'videopredict'),
     get_string('correctanswers', 'videopredict'),
     get_string('understandingchanges', 'videopredict'),
     get_string('watchedpercent', 'videopredict'),
-    get_string('grade'),
+    get_string('grade', 'grades'),
     get_string('actions'),
 ];
 foreach ($rows as $row) {

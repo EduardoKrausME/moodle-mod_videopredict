@@ -159,3 +159,5 @@ $string['viewdetails'] = 'Ver detalhes';
 $string['watchedpercent'] = 'Assistido';
 $string['watchedpercentvalue'] = 'Watched: {$a}%';
 $string['yourprogress'] = 'Seu progresso';
+$string['false'] = 'Falso';
+$string['true'] = 'Verdadeiro';

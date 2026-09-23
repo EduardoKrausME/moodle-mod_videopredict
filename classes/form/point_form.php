@@ -75,7 +75,7 @@ class point_form extends \moodleform {
         $mform->setType('points', PARAM_FLOAT);
         $mform->setDefault('points', 1);
 
-        $mform->addElement('header', 'resultheader', get_string('resultheader', 'videopredict'));
+        $mform->addElement('html', '<h3>' . get_string('resultheader', 'videopredict') . '</h3>');
         $mform->addElement('text', 'revealpositiontext', get_string('revealposition', 'videopredict'), ['size' => 12]);
         $mform->setType('revealpositiontext', PARAM_TEXT);
         $mform->addHelpButton('revealpositiontext', 'revealposition', 'videopredict');

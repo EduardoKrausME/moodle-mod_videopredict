@@ -41,7 +41,7 @@ class mod_videopredict_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $this->standard_intro_elements();
 
-        $mform->addElement('header', 'videoheader', get_string('videoheader', 'videopredict'));
+        $mform->addElement('html', '<h3>' . get_string('videoheader', 'videopredict') . '</h3>');
         $sources = [
             'upload' => get_string('sourceupload', 'videopredict'),
             'url' => get_string('sourceurl', 'videopredict'),
@@ -52,7 +52,7 @@ class mod_videopredict_mod_form extends moodleform_mod {
         $mform->setDefault('videosource', 'url');
 
         $mform->addElement('filemanager', 'videofile', get_string('videofile', 'videopredict'), null, [
-            'subdirs' => 0, 'maxfiles' => 1, 'accepted_types' => ['video'],
+            'subdirs' => 0, 'accepted_types' => ['video'],
         ]);
         $mform->hideIf('videofile', 'videosource', 'neq', 'upload');
 
@@ -62,7 +62,7 @@ class mod_videopredict_mod_form extends moodleform_mod {
         $mform->addHelpButton('videourl', 'videourl', 'videopredict');
 
         $mform->addElement('filemanager', 'poster', get_string('poster', 'videopredict'), null, [
-            'subdirs' => 0, 'maxfiles' => 1, 'accepted_types' => ['image'],
+            'subdirs' => 0, 'accepted_types' => ['image'],
         ]);
         $mform->addElement('text', 'posterurl', get_string('posterurl', 'videopredict'), ['size' => 80]);
         $mform->setType('posterurl', PARAM_URL);
@@ -73,7 +73,7 @@ class mod_videopredict_mod_form extends moodleform_mod {
         $mform->addElement('advcheckbox', 'resumeplayback', get_string('resumeplayback', 'videopredict'));
         $mform->setDefault('resumeplayback', 1);
 
-        $mform->addElement('header', 'gradeheader', get_string('gradeheader', 'videopredict'));
+        $mform->addElement('html', '<h3>' . get_string('gradeheader', 'videopredict') . '</h3>');
         $mform->addElement('select', 'grademode', get_string('grademode', 'videopredict'), [
             'predictions' => get_string('grademodepredictions', 'videopredict'),
             'progress' => get_string('grademodeprogress', 'videopredict'),
@@ -121,6 +121,15 @@ class mod_videopredict_mod_form extends moodleform_mod {
         }
         if (isset($data['grade']) && (float)$data['grade'] < 0) {
             $errors['grade'] = get_string('invalidgrade', 'videopredict');
+        }
+        foreach (['videofile', 'poster'] as $field) {
+            $draftid = (int)($data[$field] ?? 0);
+            if ($draftid > 0) {
+                $draftinfo = file_get_draft_area_info($draftid);
+                if ((int)$draftinfo['filecount'] > 1) {
+                    $errors[$field] = get_string('errormaxfiles', 'videopredict');
+                }
+            }
         }
         return $errors;
     }

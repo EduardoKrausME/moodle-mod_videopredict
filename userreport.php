@@ -114,7 +114,7 @@ foreach ($records as $record) {
             ((int)$record->understandingchanged ? get_string('yes') : get_string('no'));
         $action = has_capability('mod/videopredict:grade', $context) && $record->responsetype === 'open' ?
             html_writer::link(new moodle_url('/mod/videopredict/userreport.php',
-                ['id' => $cm->id, 'userid' => $userid, 'responseid' => $record->responseid]), get_string('grade')) : '';
+                ['id' => $cm->id, 'userid' => $userid, 'responseid' => $record->responseid]), get_string('grade', 'grades')) : '';
     }
     $table->data[] = [
         gmdate($record->timeposition >= 3600 ? 'H:i:s' : 'i:s', (int)$record->timeposition),

@@ -69,8 +69,8 @@ if ($data = $form->get_data()) {
         'responsetype' => $data->responsetype,
         'optionsjson' => $data->responsetype === 'truefalse' ? json_encode(
             [
-                'true' => get_string('true'),
-                'false' => get_string('false'),
+                'true' => get_string('true', 'videopredict'),
+                'false' => get_string('false', 'videopredict'),
             ]) : $manager->options_to_json((string)$data->optionstext),
         'correctanswer' => trim((string)$data->correctanswer),
         'resulttext' => $data->result_editor['text'],
