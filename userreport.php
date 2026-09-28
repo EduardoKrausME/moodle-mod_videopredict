@@ -35,6 +35,16 @@ $activity = $DB->get_record('videopredict', ['id' => $cm->instance], '*', MUST_E
 require_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/videopredict:viewreport', $context);
+
+$groupmode = groups_get_activity_groupmode($cm);
+if ($groupmode === SEPARATEGROUPS && !has_capability('moodle/site:accessallgroups', $context)) {
+    $allowedgroups = (array)groups_get_activity_allowed_groups($cm, $USER->id);
+    $usergroups = (array)groups_get_all_groups($course->id, $userid, $cm->groupingid, 'g.id');
+    if (!array_intersect_key($allowedgroups, $usergroups)) {
+        throw new moodle_exception('nopermissions', 'error', '', get_string('viewdetails', 'videopredict'));
+    }
+}
+
 $user = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 $PAGE->set_url('/mod/videopredict/userreport.php', ['id' => $cm->id, 'userid' => $userid]);
 $PAGE->set_title(get_string('studentdetails', 'videopredict'));
@@ -114,7 +124,7 @@ foreach ($records as $record) {
             ((int)$record->understandingchanged ? get_string('yes') : get_string('no'));
         $action = has_capability('mod/videopredict:grade', $context) && $record->responsetype === 'open' ?
             html_writer::link(new moodle_url('/mod/videopredict/userreport.php',
-                ['id' => $cm->id, 'userid' => $userid, 'responseid' => $record->responseid]), get_string('grade', 'grades')) : '';
+                ['id' => $cm->id, 'userid' => $userid, 'responseid' => $record->responseid]), get_string('grade')) : '';
     }
     $table->data[] = [
         gmdate($record->timeposition >= 3600 ? 'H:i:s' : 'i:s', (int)$record->timeposition),

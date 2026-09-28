@@ -26,8 +26,10 @@ namespace mod_videopredict\privacy;
 
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
+use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\transform;
+use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
 /**
@@ -35,6 +37,7 @@ use core_privacy\local\request\writer;
  */
 class provider implements
     \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
     /**
      * Method get_metadata.
@@ -92,6 +95,36 @@ class provider implements
             'userid2' => $userid,
         ]);
         return $contextlist;
+    }
+
+    /**
+     * Get the users who have personal data in the supplied activity context.
+     *
+     * @param userlist $userlist User list for the context.
+     */
+    public static function get_users_in_context(userlist $userlist): void {
+        $context = $userlist->get_context();
+        if ($context->contextlevel !== CONTEXT_MODULE) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_id('videopredict', $context->instanceid, 0, false, IGNORE_MISSING);
+        if (!$cm) {
+            return;
+        }
+
+        $sql = "SELECT pr.userid
+                  FROM {videopredict_progress} pr
+                 WHERE pr.videopredictid = :progressid
+                 UNION
+                SELECT r.userid
+                  FROM {videopredict_responses} r
+                  JOIN {videopredict_points} p ON p.id = r.pointid
+                 WHERE p.videopredictid = :responseid";
+        $userlist->add_from_sql('userid', $sql, [
+            'progressid' => $cm->instance,
+            'responseid' => $cm->instance,
+        ]);
     }
 
     /**
@@ -168,6 +201,55 @@ class provider implements
             $DB->delete_records_select('videopredict_responses', "pointid {$insql}", $params);
         }
         $DB->delete_records('videopredict_progress', ['videopredictid' => $cm->instance]);
+    }
+
+    /**
+     * Delete personal data for an approved list of users in one activity context.
+     *
+     * @param approved_userlist $userlist Approved users and context.
+     */
+    public static function delete_data_for_users(approved_userlist $userlist): void {
+        global $DB;
+
+        $context = $userlist->get_context();
+        if ($context->contextlevel !== CONTEXT_MODULE) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_id('videopredict', $context->instanceid, 0, false, IGNORE_MISSING);
+        if (!$cm) {
+            return;
+        }
+
+        $userids = $userlist->get_userids();
+        if (!$userids) {
+            return;
+        }
+
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'user');
+        $pointids = $DB->get_fieldset_select(
+            'videopredict_points',
+            'id',
+            'videopredictid = :id',
+            ['id' => $cm->instance]
+        );
+
+        if ($pointids) {
+            [$pointsql, $pointparams] = $DB->get_in_or_equal($pointids, SQL_PARAMS_NAMED, 'point');
+            $DB->delete_records_select(
+                'videopredict_responses',
+                "userid {$usersql} AND pointid {$pointsql}",
+                array_merge($userparams, $pointparams)
+            );
+        }
+
+        $progressparams = $userparams;
+        $progressparams['videopredictid'] = $cm->instance;
+        $DB->delete_records_select(
+            'videopredict_progress',
+            "videopredictid = :videopredictid AND userid {$usersql}",
+            $progressparams
+        );
     }
 
     /**

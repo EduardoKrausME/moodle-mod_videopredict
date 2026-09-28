@@ -89,23 +89,56 @@ class mod_videopredict_mod_form extends moodleform_mod {
     }
 
     /**
+     * Post-process form data, including suffixed custom completion fields.
+     *
+     * @param stdClass $data Submitted form data.
+     */
+    public function data_postprocessing($data): void {
+        parent::data_postprocessing($data);
+
+        if (!empty($data->completionunlocked)) {
+            $suffix = $this->get_suffix();
+            $completionfield = 'completion' . $suffix;
+            $autocompletion = !empty($data->{$completionfield})
+                && (int)$data->{$completionfield} === COMPLETION_TRACKING_AUTOMATIC;
+
+            $predictionsfield = 'completionpredictions' . $suffix;
+            if (!$autocompletion || empty($data->{$predictionsfield})) {
+                $data->{$predictionsfield} = 0;
+            }
+
+            $percentfield = 'completionpercent' . $suffix;
+            if (!$autocompletion || empty($data->{$percentfield})) {
+                $data->{$percentfield} = 0;
+            }
+        }
+    }
+
+    /**
      * Custom completion fields.
      */
     public function add_completion_rules(): array {
         $mform = $this->_form;
-        $mform->addElement('advcheckbox', 'completionpredictions', get_string('completionpredictions', 'videopredict'));
-        $mform->setDefault('completionpredictions', 1);
-        $mform->addElement('text', 'completionpercent', get_string('completionpercent', 'videopredict'), ['size' => 4]);
-        $mform->setType('completionpercent', PARAM_INT);
-        $mform->setDefault('completionpercent', 0);
-        return ['completionpredictions', 'completionpercent'];
+        $suffix = $this->get_suffix();
+        $predictionsfield = 'completionpredictions' . $suffix;
+        $percentfield = 'completionpercent' . $suffix;
+
+        $mform->addElement('advcheckbox', $predictionsfield, get_string('completionpredictions', 'videopredict'));
+        $mform->setDefault($predictionsfield, 1);
+        $mform->addElement('text', $percentfield, get_string('completionpercent', 'videopredict'), ['size' => 4]);
+        $mform->setType($percentfield, PARAM_INT);
+        $mform->setDefault($percentfield, 0);
+
+        return [$predictionsfield, $percentfield];
     }
 
     /**
      * Whether completion rules are enabled.
      */
     public function completion_rule_enabled($data): bool {
-        return !empty($data['completionpredictions']) || !empty($data['completionpercent']);
+        $suffix = $this->get_suffix();
+        return !empty($data['completionpredictions' . $suffix])
+            || !empty($data['completionpercent' . $suffix]);
     }
 
     /**
@@ -116,8 +149,10 @@ class mod_videopredict_mod_form extends moodleform_mod {
         if (($data['videosource'] ?? 'url') !== 'upload' && trim((string)($data['videourl'] ?? '')) === '') {
             $errors['videourl'] = get_string('required');
         }
-        if (isset($data['completionpercent']) && ((int)$data['completionpercent'] < 0 || (int)$data['completionpercent'] > 100)) {
-            $errors['completionpercent'] = get_string('invalidpercent', 'videopredict');
+        $completionpercentfield = 'completionpercent' . $this->get_suffix();
+        if (isset($data[$completionpercentfield])
+                && ((int)$data[$completionpercentfield] < 0 || (int)$data[$completionpercentfield] > 100)) {
+            $errors[$completionpercentfield] = get_string('invalidpercent', 'videopredict');
         }
         if (isset($data['grade']) && (float)$data['grade'] < 0) {
             $errors['grade'] = get_string('invalidgrade', 'videopredict');

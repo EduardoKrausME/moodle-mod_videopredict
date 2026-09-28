@@ -38,7 +38,21 @@ $PAGE->set_url('/mod/videopredict/report.php', ['id' => $cm->id]);
 $PAGE->set_title(get_string('reporttitle', 'videopredict'));
 $PAGE->set_heading(format_string($course->fullname));
 
-$users = get_enrolled_users($context, 'mod/videopredict:view', 0, 'u.id,u.firstname,u.lastname,u.email', 'u.lastname,u.firstname');
+$groupmode = groups_get_activity_groupmode($cm);
+$currentgroup = $groupmode === NOGROUPS ? 0 : groups_get_activity_group($cm, true);
+$accessallgroups = has_capability('moodle/site:accessallgroups', $context);
+
+if ($groupmode === SEPARATEGROUPS && !$accessallgroups && !$currentgroup) {
+    $users = [];
+} else {
+    $users = get_enrolled_users(
+        $context,
+        'mod/videopredict:view',
+        $currentgroup,
+        'u.id,u.firstname,u.lastname,u.email',
+        'u.lastname,u.firstname'
+    );
+}
 $points = $DB->get_records('videopredict_points', ['videopredictid' => $activity->id], 'timeposition,sortorder,id');
 $rows = [];
 $pm = new \mod_videopredict\progress_manager();
@@ -89,7 +103,7 @@ if ($download === 'csv') {
         get_string('correctanswers', 'videopredict'),
         get_string('understandingchanges', 'videopredict'),
         get_string('watchedpercent', 'videopredict'),
-        get_string('grade', 'grades'),
+        get_string('grade'),
     ]);
     foreach ($rows as $row) {
         $csv->add_data([
@@ -107,6 +121,9 @@ if ($download === 'csv') {
 }
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('reporttitle', 'videopredict'));
+if ($groupmode !== NOGROUPS) {
+    groups_print_activity_menu($cm, $PAGE->url);
+}
 if (has_capability('mod/videopredict:exportreport', $context)) {
     echo $OUTPUT->single_button(new moodle_url('/mod/videopredict/report.php',
         ['id' => $cm->id, 'download' => 'csv']), get_string('exportcsv', 'videopredict'), 'get');
@@ -117,7 +134,7 @@ $table->head = [get_string('student', 'videopredict'),
     get_string('correctanswers', 'videopredict'),
     get_string('understandingchanges', 'videopredict'),
     get_string('watchedpercent', 'videopredict'),
-    get_string('grade', 'grades'),
+    get_string('grade'),
     get_string('actions'),
 ];
 foreach ($rows as $row) {
