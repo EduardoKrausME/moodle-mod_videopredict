@@ -35,23 +35,23 @@ class backup_videopredict_activity_structure_step extends backup_activity_struct
         $userinfo = $this->get_setting_value('userinfo');
         $activity = new backup_nested_element('videopredict', ['id'], [
             'course', 'name', 'intro', 'introformat', 'videosource', 'videourl', 'posterurl', 'preventseek',
-            'resumeplayback', 'completionpredictions', 'completionpercent', 'grademode', 'grade', 'timecreated', 'timemodified'
+            'resumeplayback', 'completionpredictions', 'completionpercent', 'grademode', 'grade', 'timecreated', 'timemodified',
         ]);
         $points = new backup_nested_element('points');
         $point = new backup_nested_element('point', ['id'], [
             'timeposition', 'revealposition', 'title', 'question', 'questionformat', 'responsetype', 'optionsjson',
             'correctanswer', 'resulttext', 'resultformat', 'reflectionquestion', 'reflectionformat', 'required',
-            'pauseonreveal', 'points', 'sortorder', 'timecreated', 'timemodified'
+            'pauseonreveal', 'points', 'sortorder', 'timecreated', 'timemodified',
         ]);
         $responses = new backup_nested_element('responses');
         $response = new backup_nested_element('response', ['id'], [
             'userid', 'response', 'responsejson', 'iscorrect', 'awarded', 'reflection', 'understandingchanged',
-            'predictiontime', 'reflectiontime', 'gradedby', 'timemodified'
+            'predictiontime', 'reflectiontime', 'gradedby', 'timemodified',
         ]);
         $progresses = new backup_nested_element('progresses');
         $progress = new backup_nested_element('progress', ['id'], [
             'userid', 'duration', 'lastposition', 'maxwatched', 'uniquewatched', 'totalwatchtime', 'percent',
-            'segments', 'completed', 'timecreated', 'timemodified'
+            'segments', 'completed', 'timecreated', 'timemodified',
         ]);
         $activity->add_child($points);
         $points->add_child($point);
