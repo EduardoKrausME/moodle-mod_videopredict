@@ -141,13 +141,22 @@ class progress_manager {
     }
 
     /**
-     * Calculate user grade on 0..100 scale.
+     * Calculate a grade from already loaded progress, points and responses.
+     *
+     * @param \stdClass $activity Activity record.
+     * @param \stdClass $progress Progress record.
+     * @param array $points Prediction point records.
+     * @param array $responses Response records keyed in any way.
+     * @return float|null Grade on a 0..100 scale, or null when the user has no data.
      */
-    public function calculate_grade(\stdClass $activity, int $userid): ?float {
-        global $DB;
-        $progress = $this->get_progress($activity->id, $userid);
+    public function calculate_grade_from_data(\stdClass $activity, \stdClass $progress, array $points,
+                                              array $responses): ?float {
         $progressgrade = min(100, max(0, (float)$progress->percent));
-        $points = $DB->get_records('videopredict_points', ['videopredictid' => $activity->id]);
+        $responsesbypoint = [];
+        foreach ($responses as $response) {
+            $responsesbypoint[(int)$response->pointid] = $response;
+        }
+
         $possible = 0.0;
         $awarded = 0.0;
         $hasresponse = false;
@@ -156,12 +165,13 @@ class progress_manager {
                 continue;
             }
             $possible += (float)$point->points;
-            $response = $DB->get_record('videopredict_responses', ['pointid' => $point->id, 'userid' => $userid]);
-            if ($response) {
+            if (isset($responsesbypoint[(int)$point->id])) {
+                $response = $responsesbypoint[(int)$point->id];
                 $hasresponse = true;
                 $awarded += min((float)$point->points, max(0, (float)$response->awarded));
             }
         }
+
         $predictiongrade = $possible > 0 ? ($awarded / $possible) * 100 : 0;
         if (!$hasresponse && $progressgrade <= 0) {
             return null;
@@ -173,6 +183,53 @@ class progress_manager {
             return ($predictiongrade + $progressgrade) / 2;
         }
         return $predictiongrade;
+    }
+
+    /**
+     * Calculate user grade on 0..100 scale.
+     */
+    public function calculate_grade(\stdClass $activity, int $userid): ?float {
+        global $DB;
+
+        $progress = $this->get_progress($activity->id, $userid);
+        $points = $DB->get_records('videopredict_points', ['videopredictid' => $activity->id]);
+        $responses = [];
+        if ($points) {
+            [$insql, $params] = $DB->get_in_or_equal(array_keys($points), SQL_PARAMS_NAMED, 'point');
+            $params['userid'] = $userid;
+            $responses = $DB->get_records_select(
+                'videopredict_responses',
+                "userid = :userid AND pointid {$insql}",
+                $params
+            );
+        }
+        return $this->calculate_grade_from_data($activity, $progress, $points, $responses);
+    }
+
+    /**
+     * Synchronise every user who currently has data in the activity.
+     *
+     * @param \stdClass $activity Activity record.
+     * @return void
+     */
+    public function sync_activity_users(\stdClass $activity): void {
+        global $DB;
+
+        $sql = "SELECT pr.userid
+                  FROM {videopredict_progress} pr
+                 WHERE pr.videopredictid = :progressid
+                 UNION
+                SELECT r.userid
+                  FROM {videopredict_responses} r
+                  JOIN {videopredict_points} p ON p.id = r.pointid
+                 WHERE p.videopredictid = :responseid";
+        $userids = $DB->get_fieldset_sql($sql, [
+            'progressid' => $activity->id,
+            'responseid' => $activity->id,
+        ]);
+        foreach ($userids as $userid) {
+            $this->sync_user($activity, (int)$userid);
+        }
     }
 
     /**

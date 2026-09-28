@@ -36,29 +36,18 @@ $context = context_module::instance($cm->id);
 require_capability('mod/videopredict:managepoints', $context);
 if ($delete && confirm_sesskey()) {
     $point = (new \mod_videopredict\prediction_manager())->get_point($delete, $activity->id);
+    $progressmanager = new \mod_videopredict\progress_manager();
 
-    // Removing a point changes the grade denominator and completion requirements for every user
-    // with activity data, not only for users who answered this particular point.
-    $sql = "SELECT pr.userid
-              FROM {videopredict_progress} pr
-             WHERE pr.videopredictid = :progressid
-             UNION
-            SELECT r.userid
-              FROM {videopredict_responses} r
-              JOIN {videopredict_points} p ON p.id = r.pointid
-             WHERE p.videopredictid = :responseid";
-    $affectedusers = $DB->get_fieldset_sql($sql, [
-        'progressid' => $activity->id,
-        'responseid' => $activity->id,
+    $event = \mod_videopredict\event\point_deleted::create([
+        'objectid' => $point->id,
+        'context' => $context,
     ]);
+    $event->add_record_snapshot('videopredict_points', $point);
 
     $DB->delete_records('videopredict_responses', ['pointid' => $point->id]);
     $DB->delete_records('videopredict_points', ['id' => $point->id]);
-
-    $progressmanager = new \mod_videopredict\progress_manager();
-    foreach ($affectedusers as $userid) {
-        $progressmanager->sync_user($activity, (int)$userid);
-    }
+    $progressmanager->sync_activity_users($activity);
+    $event->trigger();
 
     redirect(new moodle_url('/mod/videopredict/points.php', ['id' => $cm->id]), get_string('pointdeleted', 'videopredict'));
 }

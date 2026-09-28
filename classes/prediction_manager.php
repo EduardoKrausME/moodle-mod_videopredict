@@ -143,6 +143,16 @@ class prediction_manager {
         ];
         $record->id = $DB->insert_record('videopredict_responses', $record);
         (new progress_manager())->sync_user($activity, $userid);
+
+        if ($cm = get_coursemodule_from_instance('videopredict', $activity->id, $activity->course, false, IGNORE_MISSING)) {
+            $event = \mod_videopredict\event\prediction_submitted::create([
+                'objectid' => $record->id,
+                'context' => \context_module::instance($cm->id),
+                'relateduserid' => $userid,
+                'other' => ['pointid' => (int)$point->id],
+            ]);
+            $event->trigger();
+        }
         return $record;
     }
 
@@ -169,7 +179,47 @@ class prediction_manager {
         $record->reflectiontime = time();
         $record->timemodified = time();
         $DB->update_record('videopredict_responses', $record);
+
+        if ($cm = get_coursemodule_from_instance('videopredict', $activity->id, $activity->course, false, IGNORE_MISSING)) {
+            $event = \mod_videopredict\event\reflection_submitted::create([
+                'objectid' => $record->id,
+                'context' => \context_module::instance($cm->id),
+                'relateduserid' => $userid,
+                'other' => ['pointid' => (int)$point->id],
+            ]);
+            $event->trigger();
+        }
         return $record;
+    }
+
+    /**
+     * Re-evaluate stored responses after an objective point changes.
+     *
+     * @param \stdClass $point Updated point.
+     * @return void
+     */
+    public function regrade_point(\stdClass $point): void {
+        global $DB;
+
+        $responses = $DB->get_records('videopredict_responses', ['pointid' => $point->id]);
+        $choices = $this->choices($point);
+        foreach ($responses as $response) {
+            if ($point->responsetype === 'open') {
+                $response->awarded = min((float)$point->points, max(0.0, (float)$response->awarded));
+            } else if ((string)$point->correctanswer === '') {
+                $response->iscorrect = -1;
+                $response->awarded = 0.0;
+                $response->gradedby = 0;
+            } else {
+                $valid = array_key_exists((string)$response->response, $choices);
+                $response->iscorrect = $valid
+                    && hash_equals((string)$point->correctanswer, (string)$response->response) ? 1 : 0;
+                $response->awarded = $response->iscorrect ? (float)$point->points : 0.0;
+                $response->gradedby = 0;
+            }
+            $response->timemodified = time();
+            $DB->update_record('videopredict_responses', $response);
+        }
     }
 
     /**
@@ -193,17 +243,21 @@ class prediction_manager {
         $state = [];
         foreach ($points as $point) {
             $response = $byid[$point->id] ?? null;
+            $available = $response || (float)$progress->maxwatched + 5.0 >= (float)$point->timeposition;
             $revealed = $response && (float)$progress->maxwatched + 2.0 >= (float)$point->revealposition;
             $choices = [];
-            foreach ($this->choices($point) as $value => $label) {
-                $choices[] = ['value' => $value, 'label' => $label];
+            if ($available) {
+                foreach ($this->choices($point) as $value => $label) {
+                    $choices[] = ['value' => $value, 'label' => $label];
+                }
             }
             $state[] = [
                 'id' => (int)$point->id,
                 'timeposition' => (float)$point->timeposition,
                 'revealposition' => (float)$point->revealposition,
                 'title' => format_string($point->title),
-                'question' => format_text($point->question, $point->questionformat, ['para' => false]),
+                'question' => $available
+                    ? format_text($point->question, $point->questionformat, ['para' => false]) : '',
                 'responsetype' => $point->responsetype,
                 'choices' => $choices,
                 'required' => (bool)$point->required,

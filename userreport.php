@@ -65,6 +65,13 @@ if ($responseid && has_capability('mod/videopredict:grade', $context)) {
         $response->timemodified = time();
         $DB->update_record('videopredict_responses', $response);
         (new \mod_videopredict\progress_manager())->sync_user($activity, $userid);
+        $event = \mod_videopredict\event\prediction_graded::create([
+            'objectid' => $response->id,
+            'context' => $context,
+            'relateduserid' => $userid,
+            'other' => ['pointid' => (int)$point->id],
+        ]);
+        $event->trigger();
         redirect(new moodle_url('/mod/videopredict/userreport.php',
             ['id' => $cm->id, 'userid' => $userid]), get_string('gradesaved', 'videopredict'));
     }

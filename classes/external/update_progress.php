@@ -72,30 +72,56 @@ class update_progress extends external_api {
         $activity = $DB->get_record('videopredict', ['id' => $cm->instance], '*', MUST_EXIST);
         $manager = new progress_manager();
         $progress = $manager->get_progress($activity->id, $USER->id);
+
+        // Never trust a client heartbeat as authoritative playback history. Limit newly accepted
+        // watched time by server wall-clock time and require new frontier segments to remain contiguous.
+        $now = time();
+        $serverelapsed = $progress->id ? max(0.0, (float)($now - (int)$progress->timemodified)) : 5.0;
+        $elapsedlimit = min(30.0, max(1.5, $serverelapsed + 1.5));
+        $elapsed = max(0.0, min($elapsedlimit, (float)$params['elapsed']));
+
         $maxallowed = $manager->max_allowed_position($activity, $USER->id, $progress);
-        $position = min(max(0, $params['position']), $maxallowed);
-        $start = min(max(0, $params['start']), $maxallowed);
-        $end = min(max($start, $params['end']), $maxallowed);
-        $elapsed = max(0, min(30, $params['elapsed']));
-        if ($elapsed + 2.5 < ($end - $start)) {
-            $end = $start + $elapsed + 2.5;
+        $position = min(max(0.0, (float)$params['position']), $maxallowed);
+        $start = min(max(0.0, (float)$params['start']), $maxallowed);
+        $end = min(max($start, (float)$params['end']), $maxallowed);
+
+        $frontier = (float)$progress->maxwatched;
+        if ($start > $frontier + 1.5) {
+            $start = $frontier;
         }
+        $end = min($end, $start + $elapsed + 1.5, $frontier + $elapsed + 2.5);
+
         $segments = json_decode((string)$progress->segments, true);
         $segments = is_array($segments) ? $segments : [];
         if ($end > $start && $elapsed > 0) {
             $segments = $manager->merge_segments($segments, $start, $end);
         }
-        $duration = max((float)$progress->duration, min(86400, max(0, $params['duration'])));
+
+        $maxpointtime = (float)$DB->get_field_sql(
+            "SELECT MAX(revealposition) FROM {videopredict_points} WHERE videopredictid = :activityid",
+            ['activityid' => $activity->id]
+        );
+        $reportedduration = min(86400.0, max(0.0, (float)$params['duration']));
+        $duration = max(
+            (float)$progress->duration,
+            $reportedduration,
+            $maxpointtime > 0 ? $maxpointtime + 0.5 : 0.0,
+            $end
+        );
+
         $unique = $manager->unique_seconds($segments);
-        $percent = $duration > 0 ? min(100, ($unique / $duration) * 100) : 0;
+        $totalwatchtime = (float)$progress->totalwatchtime + $elapsed;
+        $watchedseconds = min($unique, $totalwatchtime);
+        $percent = $duration > 0 ? min(100, ($watchedseconds / $duration) * 100) : 0;
+
         $progress->duration = $duration;
-        $progress->lastposition = $position;
-        $progress->maxwatched = max((float)$progress->maxwatched, $end, $position);
+        $progress->lastposition = min($position, max($frontier, $end) + 1.0);
+        $progress->maxwatched = max($frontier, $end);
         $progress->uniquewatched = $unique;
-        $progress->totalwatchtime = (float)$progress->totalwatchtime + $elapsed;
+        $progress->totalwatchtime = $totalwatchtime;
         $progress->percent = $percent;
         $progress->segments = json_encode($segments, JSON_UNESCAPED_SLASHES);
-        $progress->timemodified = time();
+        $progress->timemodified = $now;
         if ($progress->id) {
             $DB->update_record('videopredict_progress', $progress);
         } else {
