@@ -1,0 +1,36 @@
+name: Validate and package
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  validate-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+
+      - name: Validate PHP syntax
+        run: find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Build clean Moodle package
+        run: |
+          mkdir -p build/videopredict
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            ./ build/videopredict/
+          cd build
+          zip -r ../mod_videopredict_2026092800.zip videopredict
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod_videopredict_2026092800
+          path: mod_videopredict_2026092800.zip
+          if-no-files-found: error
