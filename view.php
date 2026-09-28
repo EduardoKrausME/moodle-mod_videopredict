@@ -110,6 +110,8 @@ $config = [
         'seekblocked' => get_string('seekblocked', 'videopredict'),
         'correct' => get_string('correct', 'videopredict'),
         'incorrect' => get_string('incorrect', 'videopredict'),
+        'responserequired' => get_string('responseisrequired', 'videopredict'),
+        'hlsunsupported' => get_string('hlsunsupported', 'videopredict'),
     ],
 ];
 $PAGE->requires->js_call_amd('mod_videopredict/player', 'init', [$config]);

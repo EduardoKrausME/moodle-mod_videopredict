@@ -46,17 +46,45 @@ define(['core/ajax', 'core/notification'], function (Ajax, Notification) {
     });
 
     class Html5Adapter {
-        constructor(video, url, poster) {
+        constructor(video, url, poster, hlsUnsupported) {
             this.video = video;
+            this.url = url;
+            this.hlsUnsupported = hlsUnsupported;
             video.hidden = false;
-            video.src = url;
             if (poster) {
                 video.poster = poster;
             }
         }
 
-        ready() {
-            return new Promise(resolve => this.video.readyState > 0 ? resolve() : this.video.addEventListener('loadedmetadata', resolve, {once: true}));
+        async ready() {
+            const isHls = /\.m3u8(?:$|[?#])/i.test(this.url);
+            const nativeHls = this.video.canPlayType('application/vnd.apple.mpegurl')
+                || this.video.canPlayType('application/x-mpegURL');
+
+            if (isHls && !nativeHls) {
+                await loadScript('https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js', 'Hls');
+                if (!window.Hls || !window.Hls.isSupported()) {
+                    throw new Error(this.hlsUnsupported);
+                }
+                this.hls = new window.Hls();
+                await new Promise((resolve, reject) => {
+                    this.hls.on(window.Hls.Events.MANIFEST_PARSED, resolve);
+                    this.hls.on(window.Hls.Events.ERROR, (event, data) => {
+                        if (data && data.fatal) {
+                            reject(new Error(this.hlsUnsupported));
+                        }
+                    });
+                    this.hls.loadSource(this.url);
+                    this.hls.attachMedia(this.video);
+                });
+            } else {
+                this.video.src = this.url;
+            }
+
+            if (this.video.readyState > 0) {
+                return;
+            }
+            await new Promise(resolve => this.video.addEventListener('loadedmetadata', resolve, {once: true}));
         }
 
         onTime(callback) {
@@ -280,7 +308,12 @@ define(['core/ajax', 'core/notification'], function (Ajax, Notification) {
             const source = this.config.source;
             if (source === 'youtube') return new YoutubeAdapter(qs(this.root, '[data-region="iframe-player"]'), this.config.url);
             if (source === 'vimeo') return new VimeoAdapter(qs(this.root, '[data-region="iframe-player"]'), this.config.url);
-            return new Html5Adapter(qs(this.root, '[data-region="html5-player"]'), this.config.url, this.root.dataset.poster || '');
+            return new Html5Adapter(
+                qs(this.root, '[data-region="html5-player"]'),
+                this.config.url,
+                this.root.dataset.poster || '',
+                this.config.strings.hlsunsupported
+            );
         }
 
         bind() {
@@ -334,14 +367,20 @@ define(['core/ajax', 'core/notification'], function (Ajax, Notification) {
                 const mandatory = this.points.find(p => p.required && !p.answered && time >= Number(p.timeposition) - 0.25);
                 if (mandatory) {
                     this.adapter.pause();
-                    this.openPoint(mandatory, false);
+                    this.flush().then(() => {
+                        const fresh = this.points.find(p => p.id === mandatory.id);
+                        if (fresh) this.openPoint(fresh, false);
+                    });
                     return;
                 }
                 const optional = this.points.find(p => !p.required && !p.answered && !p.prompted && time >= Number(p.timeposition) - 0.25);
                 if (optional) {
                     optional.prompted = true;
                     this.adapter.pause();
-                    this.openPoint(optional, false);
+                    this.flush().then(() => {
+                        const fresh = this.points.find(p => p.id === optional.id);
+                        if (fresh) this.openPoint(fresh, false);
+                    });
                     return;
                 }
                 const reveal = this.points.find(p => p.answered && !p.reflected && p.pauseonreveal && !p.revealprompted && time >= Number(p.revealposition) - 0.25);
@@ -508,7 +547,7 @@ define(['core/ajax', 'core/notification'], function (Ajax, Notification) {
                 if (checked) response = checked.value;
             }
             if (!response) {
-                this.showError('A response is required.');
+                this.showError(this.config.strings.responserequired);
                 return;
             }
             try {
