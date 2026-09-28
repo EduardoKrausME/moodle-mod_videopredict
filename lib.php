@@ -45,6 +45,8 @@ function videopredict_supports($feature) {
             return true;
         case FEATURE_BACKUP_MOODLE2:
             return true;
+        case FEATURE_SHOW_DESCRIPTION:
+            return true;
         case FEATURE_MOD_PURPOSE:
             return MOD_PURPOSE_ASSESSMENT;
         default:
@@ -193,28 +195,49 @@ function videopredict_grade_item_update(stdClass $activity, array|null $grades =
 }
 
 /**
- * Publish calculated grades.
+ * Return calculated user grades to the Moodle gradebook.
+ *
+ * @param stdClass $activity Activity record.
+ * @param int $userid Optional user id, or 0 for every user with activity data.
+ * @return array Grade objects keyed by user id.
  */
-function videopredict_update_grades(stdClass $activity, int $userid = 0, bool $nullifnone = true): void {
+function videopredict_get_user_grades(stdClass $activity, int $userid = 0): array {
     global $DB;
+
     $manager = new progress_manager();
-    $userids = [];
     if ($userid) {
-        $userids[] = $userid;
+        $userids = [$userid];
     } else {
-        $userids = $DB->get_fieldset_select('videopredict_progress', 'userid', 'videopredictid = :id', ['id' => $activity->id]);
+        $userids = $DB->get_fieldset_select(
+            'videopredict_progress',
+            'userid',
+            'videopredictid = :id',
+            ['id' => $activity->id]
+        );
         $sql = "SELECT DISTINCT r.userid
                   FROM {videopredict_responses} r
                   JOIN {videopredict_points} p ON p.id = r.pointid
                  WHERE p.videopredictid = :id";
         $userids = array_unique(array_merge($userids, $DB->get_fieldset_sql($sql, ['id' => $activity->id])));
     }
+
     $grades = [];
     foreach ($userids as $uid) {
         $score100 = $manager->calculate_grade($activity, (int)$uid);
         $raw = $score100 === null ? null : ($score100 / 100) * (float)$activity->grade;
-        $grades[(int)$uid] = (object)['userid' => (int)$uid, 'rawgrade' => $raw];
+        $grades[(int)$uid] = (object)[
+            'userid' => (int)$uid,
+            'rawgrade' => $raw,
+        ];
     }
+    return $grades;
+}
+
+/**
+ * Publish calculated grades.
+ */
+function videopredict_update_grades(stdClass $activity, int $userid = 0, bool $nullifnone = true): void {
+    $grades = videopredict_get_user_grades($activity, $userid);
     if (!$grades && $userid && $nullifnone) {
         $grades[$userid] = (object)['userid' => $userid, 'rawgrade' => null];
     }
@@ -277,4 +300,72 @@ function videopredict_get_completion_state($course, $cm, int $userid, bool $type
     global $DB;
     $activity = $DB->get_record('videopredict', ['id' => $cm->instance], '*', MUST_EXIST);
     return (new progress_manager())->is_complete($activity, $userid);
+}
+
+
+/**
+ * Add Video Prediction options to the course reset form.
+ *
+ * @param moodleform $mform Reset form.
+ * @return void
+ */
+function videopredict_reset_course_form_definition(&$mform): void {
+    $mform->addElement('header', 'videopredictheader', get_string('modulenameplural', 'videopredict'));
+    $mform->addElement('advcheckbox', 'reset_videopredict', get_string('resetuserdata', 'videopredict'));
+}
+
+/**
+ * Default Video Prediction course reset options.
+ *
+ * @param stdClass $course Course record.
+ * @return array Default values.
+ */
+function videopredict_reset_course_form_defaults($course): array {
+    return ['reset_videopredict' => 1];
+}
+
+/**
+ * Reset learner data for all Video Prediction activities in a course.
+ *
+ * @param stdClass $data Course reset data.
+ * @return array Reset status.
+ */
+function videopredict_reset_userdata($data): array {
+    global $CFG, $DB;
+
+    if (empty($data->reset_videopredict)) {
+        return [];
+    }
+
+    require_once($CFG->libdir . '/gradelib.php');
+    $activities = $DB->get_records('videopredict', ['course' => $data->courseid]);
+    foreach ($activities as $activity) {
+        $pointids = $DB->get_fieldset_select(
+            'videopredict_points',
+            'id',
+            'videopredictid = :id',
+            ['id' => $activity->id]
+        );
+        if ($pointids) {
+            [$insql, $params] = $DB->get_in_or_equal($pointids, SQL_PARAMS_NAMED, 'point');
+            $DB->delete_records_select('videopredict_responses', "pointid {$insql}", $params);
+        }
+        $DB->delete_records('videopredict_progress', ['videopredictid' => $activity->id]);
+        grade_update(
+            'mod/videopredict',
+            $activity->course,
+            'mod',
+            'videopredict',
+            $activity->id,
+            0,
+            null,
+            ['reset' => true]
+        );
+    }
+
+    return [[
+        'component' => get_string('modulenameplural', 'videopredict'),
+        'item' => get_string('resetuserdata', 'videopredict'),
+        'error' => false,
+    ]];
 }

@@ -61,12 +61,15 @@ class provider implements
         $collection->add_database_table('videopredict_responses', [
             'userid' => 'privacy:metadata:responses:userid',
             'response' => 'privacy:metadata:responses:response',
+            'responsejson' => 'privacy:metadata:responses:responsejson',
             'iscorrect' => 'privacy:metadata:responses:iscorrect',
             'awarded' => 'privacy:metadata:responses:awarded',
             'reflection' => 'privacy:metadata:responses:reflection',
             'understandingchanged' => 'privacy:metadata:responses:understandingchanged',
             'predictiontime' => 'privacy:metadata:responses:predictiontime',
             'reflectiontime' => 'privacy:metadata:responses:reflectiontime',
+            'gradedby' => 'privacy:metadata:responses:gradedby',
+            'timemodified' => 'privacy:metadata:responses:timemodified',
         ], 'privacy:metadata:responses');
         return $collection;
     }
@@ -85,7 +88,8 @@ class provider implements
                   JOIN {videopredict} v ON v.id = cm.instance
              LEFT JOIN {videopredict_progress} pr ON pr.videopredictid = v.id AND pr.userid = :userid1
              LEFT JOIN {videopredict_points} p ON p.videopredictid = v.id
-             LEFT JOIN {videopredict_responses} r ON r.pointid = p.id AND r.userid = :userid2
+             LEFT JOIN {videopredict_responses} r ON r.pointid = p.id
+                       AND (r.userid = :userid2 OR r.gradedby = :userid3)
                  WHERE pr.id IS NOT NULL OR r.id IS NOT NULL";
         $contextlist = new contextlist();
         $contextlist->add_from_sql($sql, [
@@ -93,6 +97,7 @@ class provider implements
             'modname' => 'videopredict',
             'userid1' => $userid,
             'userid2' => $userid,
+            'userid3' => $userid,
         ]);
         return $contextlist;
     }
@@ -121,10 +126,17 @@ class provider implements
                 SELECT r.userid
                   FROM {videopredict_responses} r
                   JOIN {videopredict_points} p ON p.id = r.pointid
-                 WHERE p.videopredictid = :responseid";
+                 WHERE p.videopredictid = :responseid
+                 UNION
+                SELECT r.gradedby AS userid
+                  FROM {videopredict_responses} r
+                  JOIN {videopredict_points} p ON p.id = r.pointid
+                 WHERE p.videopredictid = :graderid
+                   AND r.gradedby > 0";
         $userlist->add_from_sql('userid', $sql, [
             'progressid' => $cm->instance,
             'responseid' => $cm->instance,
+            'graderid' => $cm->instance,
         ]);
     }
 
@@ -175,6 +187,26 @@ class provider implements
                         'understandingchanged' => $response->understandingchanged,
                         'predictiontime' => transform::datetime($response->predictiontime),
                         'reflectiontime' => $response->reflectiontime ? transform::datetime($response->reflectiontime) : '',
+                    ]
+                );
+            }
+            $sql = "SELECT r.id, r.iscorrect, r.awarded, r.timemodified, p.title
+                      FROM {videopredict_responses} r
+                      JOIN {videopredict_points} p ON p.id = r.pointid
+                     WHERE p.videopredictid = :activityid
+                       AND r.gradedby = :graderid
+                  ORDER BY r.timemodified";
+            $gradings = $DB->get_records_sql($sql, ['activityid' => $cm->instance, 'graderid' => $userid]);
+            foreach ($gradings as $grading) {
+                writer::with_context($context)->export_data(
+                    [
+                        get_string('privacy:gradingpath', 'videopredict'),
+                        format_string($grading->title) . ' #' . $grading->id,
+                    ],
+                    (object)[
+                        'iscorrect' => $grading->iscorrect,
+                        'awarded' => $grading->awarded,
+                        'timemodified' => transform::datetime($grading->timemodified),
                     ]
                 );
             }
@@ -245,6 +277,18 @@ class provider implements
             );
         }
 
+        $graderparams = $userparams;
+        $graderparams['activityid'] = $cm->instance;
+        $DB->set_field_select(
+            'videopredict_responses',
+            'gradedby',
+            0,
+            "gradedby {$usersql} AND pointid IN (
+                SELECT id FROM {videopredict_points} WHERE videopredictid = :activityid
+            )",
+            $graderparams
+        );
+
         $progressparams = $userparams;
         $progressparams['videopredictid'] = $cm->instance;
         $DB->delete_records_select(
@@ -273,6 +317,15 @@ class provider implements
                 $params['userid'] = $userid;
                 $DB->delete_records_select('videopredict_responses', "userid = :userid AND pointid {$insql}", $params);
             }
+            $DB->set_field_select(
+                'videopredict_responses',
+                'gradedby',
+                0,
+                "gradedby = :graderid AND pointid IN (
+                    SELECT id FROM {videopredict_points} WHERE videopredictid = :activityid
+                )",
+                ['graderid' => $userid, 'activityid' => $cm->instance]
+            );
             $DB->delete_records('videopredict_progress', ['videopredictid' => $cm->instance, 'userid' => $userid]);
         }
     }
