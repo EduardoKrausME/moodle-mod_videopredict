@@ -59,6 +59,9 @@ class point_form extends \moodleform {
             'truefalse' => get_string('responsetruefalse', 'videopredict'),
             'outcomes' => get_string('responseoutcomes', 'videopredict'),
         ]);
+        if (!empty($this->_customdata['hasresponses'])) {
+            $mform->freeze('responsetype');
+        }
         $mform->addElement('textarea', 'optionstext', get_string('responseoptions', 'videopredict'), ['rows' => 6, 'cols' => 70]);
         $mform->setType('optionstext', PARAM_RAW_TRIMMED);
         $mform->addHelpButton('optionstext', 'responseoptions', 'videopredict');
@@ -67,7 +70,14 @@ class point_form extends \moodleform {
         $mform->addElement('text', 'correctanswer', get_string('correctanswer', 'videopredict'), ['size' => 30]);
         $mform->setType('correctanswer', PARAM_TEXT);
         $mform->hideIf('correctanswer', 'responsetype', 'eq', 'open');
+        $mform->hideIf('correctanswer', 'responsetype', 'eq', 'truefalse');
         $mform->addHelpButton('correctanswer', 'correctanswer', 'videopredict');
+        $mform->addElement('select', 'correctanswertruefalse', get_string('correctanswer', 'videopredict'), [
+            '' => get_string('notgraded', 'videopredict'),
+            'true' => get_string('true', 'videopredict'),
+            'false' => get_string('false', 'videopredict'),
+        ]);
+        $mform->hideIf('correctanswertruefalse', 'responsetype', 'neq', 'truefalse');
 
         $mform->addElement('advcheckbox', 'required', get_string('predictionrequired', 'videopredict'));
         $mform->setDefault('required', 1);
@@ -106,6 +116,47 @@ class point_form extends \moodleform {
         if ((float)($data['points'] ?? 0) < 0) {
             $errors['points'] = get_string('invalidgrade', 'videopredict');
         }
+
+        $type = (string)($data['responsetype'] ?? 'open');
+        if (in_array($type, ['multichoice', 'outcomes'], true)) {
+            $manager = new \mod_videopredict\prediction_manager();
+            $optionsjson = $manager->options_to_json((string)($data['optionstext'] ?? ''));
+            $options = json_decode((string)$optionsjson, true);
+            if (!$options) {
+                $errors['optionstext'] = get_string('optionsrequired', 'videopredict');
+            } else {
+                $correctanswer = trim((string)($data['correctanswer'] ?? ''));
+                if ($correctanswer !== '' && !array_key_exists($correctanswer, $options)) {
+                    $errors['correctanswer'] = get_string('invalidcorrectanswer', 'videopredict');
+                }
+            }
+        }
+
+        $parse = static function (string $value): ?float {
+            $value = trim($value);
+            if ($value === '') {
+                return null;
+            }
+            if (is_numeric($value)) {
+                return (float)$value;
+            }
+            if (!preg_match('/^(?:(\\d+):)?([0-5]?\\d):(\\d{2})(?:\\.(\\d+))?$/', $value, $matches)) {
+                return null;
+            }
+            $hours = isset($matches[1]) && $matches[1] !== '' ? (float)$matches[1] : 0.0;
+            $minutes = (float)$matches[2];
+            $seconds = (float)$matches[3];
+            if (!empty($matches[4])) {
+                $seconds += (float)('0.' . $matches[4]);
+            }
+            return $hours * 3600 + $minutes * 60 + $seconds;
+        };
+        $predictiontime = $parse((string)($data['timepositiontext'] ?? ''));
+        $revealtime = $parse((string)($data['revealpositiontext'] ?? ''));
+        if ($predictiontime !== null && $revealtime !== null && $revealtime < $predictiontime) {
+            $errors['revealpositiontext'] = get_string('revealbeforeprediction', 'videopredict');
+        }
+
         return $errors;
     }
 }

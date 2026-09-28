@@ -39,7 +39,11 @@ $PAGE->set_title(get_string('predictionpoint', 'videopredict'));
 $PAGE->set_heading(format_string($course->fullname));
 $manager = new \mod_videopredict\prediction_manager();
 $point = $pointid ? $manager->get_point($pointid, $activity->id) : null;
-$form = new \mod_videopredict\form\point_form(null, ['context' => $context]);
+$hasresponses = $point ? $DB->record_exists('videopredict_responses', ['pointid' => $point->id]) : false;
+$form = new \mod_videopredict\form\point_form(null, [
+    'context' => $context,
+    'hasresponses' => $hasresponses,
+]);
 if ($form->is_cancelled()) {
     redirect(new moodle_url('/mod/videopredict/points.php', ['id' => $cm->id]));
 }
@@ -72,7 +76,9 @@ if ($data = $form->get_data()) {
                 'true' => get_string('true', 'videopredict'),
                 'false' => get_string('false', 'videopredict'),
             ]) : $manager->options_to_json((string)$data->optionstext),
-        'correctanswer' => trim((string)$data->correctanswer),
+        'correctanswer' => $data->responsetype === 'truefalse'
+            ? trim((string)$data->correctanswertruefalse)
+            : trim((string)$data->correctanswer),
         'resulttext' => $data->result_editor['text'],
         'resultformat' => $data->result_editor['format'],
         'reflectionquestion' => $data->reflection_editor['text'],
@@ -85,11 +91,27 @@ if ($data = $form->get_data()) {
     ];
     if ($pointid) {
         $DB->update_record('videopredict_points', $record);
+        $savedpoint = $manager->get_point($pointid, $activity->id);
+        $manager->regrade_point($savedpoint);
+        $event = \mod_videopredict\event\point_updated::create([
+            'objectid' => $savedpoint->id,
+            'context' => $context,
+        ]);
+        $event->add_record_snapshot('videopredict_points', $savedpoint);
+        $event->trigger();
     } else {
         unset($record->id);
         $record->timecreated = $now;
-        $DB->insert_record('videopredict_points', $record);
+        $record->id = $DB->insert_record('videopredict_points', $record);
+        $savedpoint = $manager->get_point($record->id, $activity->id);
+        $event = \mod_videopredict\event\point_created::create([
+            'objectid' => $savedpoint->id,
+            'context' => $context,
+        ]);
+        $event->add_record_snapshot('videopredict_points', $savedpoint);
+        $event->trigger();
     }
+    (new \mod_videopredict\progress_manager())->sync_activity_users($activity);
     redirect(new moodle_url('/mod/videopredict/points.php', ['id' => $cm->id]), get_string('pointsaved', 'videopredict'));
 }
 if ($point) {
@@ -98,7 +120,9 @@ if ($point) {
         'timepositiontext' => gmdate($point->timeposition >= 3600 ? 'H:i:s' : 'i:s', (int)$point->timeposition),
         'question_editor' => ['text' => $point->question, 'format' => $point->questionformat],
         'responsetype' => $point->responsetype, 'optionstext' => $manager->options_to_text($point->optionsjson),
-        'correctanswer' => $point->correctanswer, 'required' => $point->required, 'points' => $point->points,
+        'correctanswer' => $point->responsetype === 'truefalse' ? '' : $point->correctanswer,
+        'correctanswertruefalse' => $point->responsetype === 'truefalse' ? $point->correctanswer : '',
+        'required' => $point->required, 'points' => $point->points,
         'revealpositiontext' => gmdate($point->revealposition >= 3600 ? 'H:i:s' : 'i:s', (int)$point->revealposition),
         'result_editor' => ['text' => $point->resulttext, 'format' => $point->resultformat],
         'reflection_editor' => ['text' => $point->reflectionquestion, 'format' => $point->reflectionformat],
