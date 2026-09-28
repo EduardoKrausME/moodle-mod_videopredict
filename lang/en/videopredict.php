@@ -32,14 +32,12 @@ $string['completiondetail:percent'] = 'Watch at least {$a}% of the video';
 $string['completiondetail:predictions'] = 'Make all mandatory predictions';
 $string['completionpercent'] = 'Require watched percentage';
 $string['completionpredictions'] = 'Require all mandatory predictions';
-$string['completionrules'] = '';
 $string['continuevideo'] = 'Continue video';
 $string['correct'] = 'Correct';
 $string['correctanswer'] = 'Correct option value';
 $string['correctanswer_help'] = 'Enter the option key, for example A, 1, true or false. Leave blank when there is no objectively correct prediction.';
 $string['correctanswers'] = 'Correct answers';
 $string['correctness'] = 'Correctness';
-$string['errormaxfiles'] = 'Only one file can be uploaded.';
 $string['exportcsv'] = 'Export CSV';
 $string['gradeheader'] = 'Grade';
 $string['grademode'] = 'Grade calculation';
@@ -159,4 +157,37 @@ $string['watchedpercent'] = 'Watched';
 $string['watchedpercentvalue'] = 'Watched: {$a}%';
 $string['yourprogress'] = 'Your progress';
 $string['false'] = 'False';
-$string['true'] = 'True';\n$string['completionrules'] = 'Completion rules';\n\n$string['errormaxfiles'] = 'Only one file can be uploaded.';\n\n$string['eventpredictionsubmitted'] = 'Prediction submitted';\n\n$string['eventreflectionsubmitted'] = 'Reflection submitted';\n\n$string['eventpredictiongraded'] = 'Prediction graded';\n\n$string['eventpointcreated'] = 'Prediction point created';\n\n$string['eventpointupdated'] = 'Prediction point updated';\n\n$string['eventpointdeleted'] = 'Prediction point deleted';\n\n$string['optionsrequired'] = 'Add at least one response option.';\n\n$string['invalidcorrectanswer'] = 'The correct answer must match one of the option keys.';\n\n$string['revealbeforeprediction'] = 'The reveal time cannot be earlier than the prediction time.';\n\n$string['resetuserdata'] = 'Delete Video Prediction responses, reflections, progress and grades';\n\n$string['hlsunsupported'] = 'This browser cannot play this HLS stream.';\n\n$string['privacy:metadata:responses:responsejson'] = 'Structured response data.';\n\n$string['privacy:metadata:responses:gradedby'] = 'Identifier of the user who manually graded the prediction.';\n\n$string['privacy:metadata:responses:timemodified'] = 'Time when the response or grade was last modified.';\n\n$string['privacy:gradingpath'] = 'Manual grading activity';\n
+$string['true'] = 'True';
+$string['completionrules'] = 'Completion rules';
+
+$string['errormaxfiles'] = 'Only one file can be uploaded.';
+
+$string['eventpredictionsubmitted'] = 'Prediction submitted';
+
+$string['eventreflectionsubmitted'] = 'Reflection submitted';
+
+$string['eventpredictiongraded'] = 'Prediction graded';
+
+$string['eventpointcreated'] = 'Prediction point created';
+
+$string['eventpointupdated'] = 'Prediction point updated';
+
+$string['eventpointdeleted'] = 'Prediction point deleted';
+
+$string['optionsrequired'] = 'Add at least one response option.';
+
+$string['invalidcorrectanswer'] = 'The correct answer must match one of the option keys.';
+
+$string['revealbeforeprediction'] = 'The reveal time cannot be earlier than the prediction time.';
+
+$string['resetuserdata'] = 'Delete Video Prediction responses, reflections, progress and grades';
+
+$string['hlsunsupported'] = 'This browser cannot play this HLS stream.';
+
+$string['privacy:metadata:responses:responsejson'] = 'Structured response data.';
+
+$string['privacy:metadata:responses:gradedby'] = 'Identifier of the user who manually graded the prediction.';
+
+$string['privacy:metadata:responses:timemodified'] = 'Time when the response or grade was last modified.';
+
+$string['privacy:gradingpath'] = 'Manual grading activity';
