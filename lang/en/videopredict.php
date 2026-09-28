@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * videopredict.php
+ * English strings.
  *
  * @package   mod_videopredict
  * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
@@ -24,9 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-/**
- * English strings.
- */
 $string['addpredictionpoint'] = 'Add prediction point';
 $string['answer'] = 'Answer';
 $string['answered'] = 'Answered';
