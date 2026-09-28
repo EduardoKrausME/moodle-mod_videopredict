@@ -182,4 +182,39 @@ final class progress_manager_test extends \advanced_testcase {
         $this->assertTrue($DB->record_exists('videopredict_points', ['id' => $point->id]));
         $this->assertTrue($DB->record_exists('videopredict', ['id' => $activity->id]));
     }
+
+    /**
+     * A point from another Video Prediction activity is never accepted.
+     */
+    public function test_point_lookup_is_scoped_to_activity(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $activity1 = $this->getDataGenerator()->create_module('videopredict', ['course' => $course->id]);
+        $activity2 = $this->getDataGenerator()->create_module('videopredict', ['course' => $course->id]);
+        $point = $this->create_point($activity2->id);
+
+        $this->expectException(\dml_missing_record_exception::class);
+        (new prediction_manager())->get_point($point->id, $activity1->id);
+    }
+
+    /**
+     * Completion changes when required predictions are submitted.
+     */
+    public function test_required_prediction_completion(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $activity = $this->getDataGenerator()->create_module('videopredict', [
+            'course' => $course->id,
+            'completionpredictions' => 1,
+        ]);
+        $point = $this->create_point($activity->id);
+        $this->create_progress($activity->id, $user->id, 20);
+
+        $manager = new progress_manager();
+        $this->assertFalse($manager->is_complete($activity, $user->id));
+
+        (new prediction_manager())->submit_prediction($activity, $point, $user->id, 'A');
+        $this->assertTrue($manager->is_complete($activity, $user->id));
+    }
 }

@@ -95,4 +95,43 @@ final class external_test extends \advanced_testcase {
         $this->assertSame('Because the evidence points to A.', $stored->reflection);
         $this->assertEquals(1, $stored->understandingchanged);
     }
+
+    /**
+     * A fabricated large heartbeat cannot instantly award full progress.
+     */
+    public function test_progress_heartbeat_cannot_jump_to_end(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $activity = $this->getDataGenerator()->create_module('videopredict', [
+            'course' => $course->id,
+            'preventseek' => 0,
+            'grademode' => 'progress',
+        ]);
+        $cm = get_coursemodule_from_instance('videopredict', $activity->id, $course->id, false, MUST_EXIST);
+        $this->setUser($student);
+
+        $result = \mod_videopredict\external\update_progress::execute(
+            $cm->id,
+            0.0,
+            100.0,
+            100.0,
+            100.0,
+            30.0
+        );
+        $this->assertLessThan(10.0, $result['percent']);
+        $this->assertLessThan(10.0, $result['maxwatched']);
+
+        $result = \mod_videopredict\external\update_progress::execute(
+            $cm->id,
+            90.0,
+            100.0,
+            100.0,
+            100.0,
+            30.0
+        );
+        $this->assertLessThan(15.0, $result['percent']);
+        $this->assertLessThan(15.0, $result['maxwatched']);
+    }
 }
