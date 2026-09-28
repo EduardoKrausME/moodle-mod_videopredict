@@ -37,6 +37,12 @@ require_capability('mod/videopredict:managepoints', $context);
 if ($delete && confirm_sesskey()) {
     $point = (new \mod_videopredict\prediction_manager())->get_point($delete, $activity->id);
     $progressmanager = new \mod_videopredict\progress_manager();
+    $affectedusers = $DB->get_fieldset_select(
+        'videopredict_responses',
+        'userid',
+        'pointid = :pointid',
+        ['pointid' => $point->id]
+    );
 
     $event = \mod_videopredict\event\point_deleted::create([
         'objectid' => $point->id,
@@ -47,6 +53,9 @@ if ($delete && confirm_sesskey()) {
     $DB->delete_records('videopredict_responses', ['pointid' => $point->id]);
     $DB->delete_records('videopredict_points', ['id' => $point->id]);
     $progressmanager->sync_activity_users($activity);
+    foreach ($affectedusers as $userid) {
+        $progressmanager->sync_user($activity, (int)$userid);
+    }
     $event->trigger();
 
     redirect(new moodle_url('/mod/videopredict/points.php', ['id' => $cm->id]), get_string('pointdeleted', 'videopredict'));

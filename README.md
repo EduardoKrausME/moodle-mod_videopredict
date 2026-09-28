@@ -11,14 +11,15 @@ learner to predict what will happen before playback can continue.
 - Original predictions are immutable after submission.
 - Separate reveal time for the real outcome.
 - Optional post-result reflection about whether/why understanding changed.
-- HTML5 upload/direct URL, YouTube and Vimeo playback.
+- HTML5 upload/direct URL, HLS (native or hls.js fallback), YouTube and Vimeo playback.
 - Watched-segment tracking, resume, progress percentage and seek protection.
 - Timeline markers for prediction points.
 - Automatic scoring for objective questions and manual grading for open responses.
 - Gradebook integration using prediction score, watched progress or a 50/50 blend.
 - Completion by all mandatory predictions and/or watched percentage.
 - Course report, per-student responses, correctness, reflections, changed understanding and CSV export.
-- Moodle Privacy API and backup/restore support.
+- Moodle Privacy API, course reset and backup/restore support.
+- Group-aware reports with CSV export and paginated teacher views.
 
 ## Requirements
 

@@ -26,11 +26,11 @@ jobs:
             --exclude='build' \
             ./ build/videopredict/
           cd build
-          zip -r ../mod_videopredict_2026092800.zip videopredict
+          zip -r ../mod_videopredict_2026092801.zip videopredict
 
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: mod_videopredict_2026092800
-          path: mod_videopredict_2026092800.zip
+          name: mod_videopredict_2026092801
+          path: mod_videopredict_2026092801.zip
           if-no-files-found: error
