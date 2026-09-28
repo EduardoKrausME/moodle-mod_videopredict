@@ -28,16 +28,31 @@ namespace mod_videopredict\event;
  * A prediction point was deleted.
  */
 class point_deleted extends \core\event\base {
+    /**
+     * Initialise event data.
+     *
+     * @return void
+     */
     protected function init(): void {
         $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_TEACHING;
         $this->data['objecttable'] = 'videopredict_points';
     }
 
+    /**
+     * Event name.
+     *
+     * @return string
+     */
     public static function get_name(): string {
         return get_string('eventpointdeleted', 'videopredict');
     }
 
+    /**
+     * Event description.
+     *
+     * @return string
+     */
     public function get_description(): string {
         return "The user with id '{$this->userid}' deleted prediction point '{$this->objectid}'.";
     }

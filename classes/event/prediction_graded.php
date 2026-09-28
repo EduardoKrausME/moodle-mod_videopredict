@@ -28,16 +28,31 @@ namespace mod_videopredict\event;
  * A teacher graded a prediction response.
  */
 class prediction_graded extends \core\event\base {
+    /**
+     * Initialise event data.
+     *
+     * @return void
+     */
     protected function init(): void {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_TEACHING;
         $this->data['objecttable'] = 'videopredict_responses';
     }
 
+    /**
+     * Event name.
+     *
+     * @return string
+     */
     public static function get_name(): string {
         return get_string('eventpredictiongraded', 'videopredict');
     }
 
+    /**
+     * Event description.
+     *
+     * @return string
+     */
     public function get_description(): string {
         return "The user with id '{$this->userid}' graded prediction response '{$this->objectid}' " .
             "for user '{$this->relateduserid}' and point '{$this->other['pointid']}'.";
