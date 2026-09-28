@@ -101,6 +101,7 @@ class provider implements
      * Get the users who have personal data in the supplied activity context.
      *
      * @param userlist $userlist User list for the context.
+     * @return void
      */
     public static function get_users_in_context(userlist $userlist): void {
         $context = $userlist->get_context();
@@ -207,6 +208,7 @@ class provider implements
      * Delete personal data for an approved list of users in one activity context.
      *
      * @param approved_userlist $userlist Approved users and context.
+     * @return void
      */
     public static function delete_data_for_users(approved_userlist $userlist): void {
         global $DB;

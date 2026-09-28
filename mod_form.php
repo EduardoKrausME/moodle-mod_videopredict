@@ -92,6 +92,7 @@ class mod_videopredict_mod_form extends moodleform_mod {
      * Post-process form data, including suffixed custom completion fields.
      *
      * @param stdClass $data Submitted form data.
+     * @return void
      */
     public function data_postprocessing($data): void {
         parent::data_postprocessing($data);
@@ -150,8 +151,10 @@ class mod_videopredict_mod_form extends moodleform_mod {
             $errors['videourl'] = get_string('required');
         }
         $completionpercentfield = 'completionpercent' . $this->get_suffix();
-        if (isset($data[$completionpercentfield])
-                && ((int)$data[$completionpercentfield] < 0 || (int)$data[$completionpercentfield] > 100)) {
+        if (
+            isset($data[$completionpercentfield]) &&
+            ((int)$data[$completionpercentfield] < 0 || (int)$data[$completionpercentfield] > 100)
+        ) {
             $errors[$completionpercentfield] = get_string('invalidpercent', 'videopredict');
         }
         if (isset($data['grade']) && (float)$data['grade'] < 0) {
