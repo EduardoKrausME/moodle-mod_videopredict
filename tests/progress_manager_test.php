@@ -5,6 +5,14 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Tests for prediction and progress business logic.
@@ -87,6 +95,8 @@ final class progress_manager_test extends \advanced_testcase {
 
     /**
      * Predictions are immutable and objective responses are regraded when the point changes.
+     *
+     * @coversNothing
      */
     public function test_prediction_is_immutable_and_regraded(): void {
         global $DB;
@@ -129,6 +139,8 @@ final class progress_manager_test extends \advanced_testcase {
 
     /**
      * Future prediction questions are not returned before the learner approaches the point.
+     *
+     * @coversNothing
      */
     public function test_future_questions_are_hidden(): void {
         global $DB;
@@ -158,6 +170,8 @@ final class progress_manager_test extends \advanced_testcase {
 
     /**
      * Course reset removes learner data but leaves the activity and prediction points.
+     *
+     * @coversNothing
      */
     public function test_course_reset_removes_user_data(): void {
         global $CFG, $DB;
@@ -185,6 +199,8 @@ final class progress_manager_test extends \advanced_testcase {
 
     /**
      * A point from another Video Prediction activity is never accepted.
+     *
+     * @coversNothing
      */
     public function test_point_lookup_is_scoped_to_activity(): void {
         $this->resetAfterTest();
@@ -199,6 +215,8 @@ final class progress_manager_test extends \advanced_testcase {
 
     /**
      * Completion changes when required predictions are submitted.
+     *
+     * @coversNothing
      */
     public function test_required_prediction_completion(): void {
         $this->resetAfterTest();
