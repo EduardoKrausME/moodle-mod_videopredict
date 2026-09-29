@@ -5,6 +5,14 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * External service tests.
@@ -23,6 +31,8 @@ namespace mod_videopredict;
 final class external_test extends \advanced_testcase {
     /**
      * Exercise the complete learner AJAX workflow.
+     *
+     * @coversNothing
      */
     public function test_learner_external_workflow(): void {
         global $DB;
@@ -98,6 +108,8 @@ final class external_test extends \advanced_testcase {
 
     /**
      * A fabricated large heartbeat cannot instantly award full progress.
+     *
+     * @coversNothing
      */
     public function test_progress_heartbeat_cannot_jump_to_end(): void {
         $this->resetAfterTest();
