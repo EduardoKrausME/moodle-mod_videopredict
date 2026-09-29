@@ -119,25 +119,23 @@ class provider implements
             return;
         }
 
-        $sql = "SELECT pr.userid
-                  FROM {videopredict_progress} pr
-                 WHERE pr.videopredictid = :progressid
-                 UNION
-                SELECT r.userid
-                  FROM {videopredict_responses} r
-                  JOIN {videopredict_points} p ON p.id = r.pointid
-                 WHERE p.videopredictid = :responseid
-                 UNION
-                SELECT r.gradedby AS userid
-                  FROM {videopredict_responses} r
-                  JOIN {videopredict_points} p ON p.id = r.pointid
-                 WHERE p.videopredictid = :graderid
-                   AND r.gradedby > 0";
-        $userlist->add_from_sql('userid', $sql, [
-            'progressid' => $cm->instance,
-            'responseid' => $cm->instance,
-            'graderid' => $cm->instance,
-        ]);
+        $progresssql = "SELECT pr.userid
+                          FROM {videopredict_progress} pr
+                         WHERE pr.videopredictid = :activityid";
+        $userlist->add_from_sql('userid', $progresssql, ['activityid' => $cm->instance]);
+
+        $responsesql = "SELECT r.userid
+                          FROM {videopredict_responses} r
+                          JOIN {videopredict_points} p ON p.id = r.pointid
+                         WHERE p.videopredictid = :activityid";
+        $userlist->add_from_sql('userid', $responsesql, ['activityid' => $cm->instance]);
+
+        $gradersql = "SELECT r.gradedby
+                        FROM {videopredict_responses} r
+                        JOIN {videopredict_points} p ON p.id = r.pointid
+                       WHERE p.videopredictid = :activityid
+                         AND r.gradedby > 0";
+        $userlist->add_from_sql('gradedby', $gradersql, ['activityid' => $cm->instance]);
     }
 
     /**
