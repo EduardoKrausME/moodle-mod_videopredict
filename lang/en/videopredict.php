@@ -32,13 +32,22 @@ $string['completiondetail:percent'] = 'Watch at least {$a}% of the video';
 $string['completiondetail:predictions'] = 'Make all mandatory predictions';
 $string['completionpercent'] = 'Require watched percentage';
 $string['completionpredictions'] = 'Require all mandatory predictions';
+$string['completionrules'] = 'Completion rules';
 $string['continuevideo'] = 'Continue video';
 $string['correct'] = 'Correct';
 $string['correctanswer'] = 'Correct option value';
 $string['correctanswer_help'] = 'Enter the option key, for example A, 1, true or false. Leave blank when there is no objectively correct prediction.';
 $string['correctanswers'] = 'Correct answers';
 $string['correctness'] = 'Correctness';
+$string['errormaxfiles'] = 'Only one file can be uploaded.';
+$string['eventpointcreated'] = 'Prediction point created';
+$string['eventpointdeleted'] = 'Prediction point deleted';
+$string['eventpointupdated'] = 'Prediction point updated';
+$string['eventpredictiongraded'] = 'Prediction graded';
+$string['eventpredictionsubmitted'] = 'Prediction submitted';
+$string['eventreflectionsubmitted'] = 'Reflection submitted';
 $string['exportcsv'] = 'Export CSV';
+$string['false'] = 'False';
 $string['gradeheader'] = 'Grade';
 $string['grademode'] = 'Grade calculation';
 $string['grademodeblended'] = '50% prediction score + 50% watched percentage';
@@ -46,7 +55,9 @@ $string['grademodepredictions'] = 'Prediction score';
 $string['grademodeprogress'] = 'Watched percentage';
 $string['gradeprediction'] = 'Grade prediction';
 $string['gradesaved'] = 'Grade saved.';
+$string['hlsunsupported'] = 'This browser cannot play this HLS stream.';
 $string['incorrect'] = 'Incorrect';
+$string['invalidcorrectanswer'] = 'The correct answer must match one of the option keys.';
 $string['invalidgrade'] = 'Grade/points cannot be negative.';
 $string['invalidpercent'] = 'Enter a percentage from 0 to 100.';
 $string['invalidresponse'] = 'The selected response is not valid for this prediction point.';
@@ -60,6 +71,7 @@ $string['modulenameplural'] = 'Video Predictions';
 $string['noactivities'] = 'There are no Video Prediction activities in this course.';
 $string['nopoints'] = 'No prediction points have been created yet.';
 $string['notgraded'] = 'Not graded';
+$string['optionsrequired'] = 'Add at least one response option.';
 $string['pauseonreveal'] = 'Pause again at the reveal time';
 $string['pending'] = 'Pending';
 $string['pluginadministration'] = 'Video Prediction administration';
@@ -81,6 +93,7 @@ $string['predictions'] = 'Predictions';
 $string['predictiontimeposition'] = 'Prediction time';
 $string['preventseek'] = 'Prevent advancing into unviewed content';
 $string['preventseek_help'] = 'Also blocks advancement past any unanswered mandatory prediction point.';
+$string['privacy:gradingpath'] = 'Manual grading activity';
 $string['privacy:metadata:progress'] = 'Stores consolidated video viewing progress.';
 $string['privacy:metadata:progress:completed'] = 'Completion state.';
 $string['privacy:metadata:progress:duration'] = 'Known video duration.';
@@ -94,11 +107,14 @@ $string['privacy:metadata:progress:uniquewatched'] = 'Unique seconds watched.';
 $string['privacy:metadata:progress:userid'] = 'User identifier.';
 $string['privacy:metadata:responses'] = 'Stores predictions, grading and post-result reflections.';
 $string['privacy:metadata:responses:awarded'] = 'Points awarded.';
+$string['privacy:metadata:responses:gradedby'] = 'Identifier of the user who manually graded the prediction.';
 $string['privacy:metadata:responses:iscorrect'] = 'Whether the prediction was marked correct.';
 $string['privacy:metadata:responses:predictiontime'] = 'Prediction submission time.';
 $string['privacy:metadata:responses:reflection'] = 'Post-result reflection.';
 $string['privacy:metadata:responses:reflectiontime'] = 'Reflection submission time.';
 $string['privacy:metadata:responses:response'] = 'Original immutable prediction response.';
+$string['privacy:metadata:responses:responsejson'] = 'Structured response data.';
+$string['privacy:metadata:responses:timemodified'] = 'Time when the response or grade was last modified.';
 $string['privacy:metadata:responses:understandingchanged'] = 'Whether the learner reported a change in understanding.';
 $string['privacy:metadata:responses:userid'] = 'User identifier.';
 $string['privacy:progresspath'] = 'Video progress';
@@ -107,6 +123,7 @@ $string['reflection'] = 'Reflection';
 $string['reflectionlocked'] = 'This reflection has already been submitted and cannot be changed.';
 $string['reflectionquestion'] = 'Post-result reflection question';
 $string['reporttitle'] = 'Video Prediction report';
+$string['resetuserdata'] = 'Delete Video Prediction responses, reflections, progress and grades';
 $string['responseisrequired'] = 'A response is required.';
 $string['responsemultiplechoice'] = 'Multiple choice';
 $string['responseopen'] = 'Open response';
@@ -119,6 +136,7 @@ $string['resultheader'] = 'Result and reflection';
 $string['resultnotreached'] = 'The result reveal point has not been reached yet.';
 $string['resulttext'] = 'Actual result / explanation';
 $string['resumeplayback'] = 'Resume from last position';
+$string['revealbeforeprediction'] = 'The reveal time cannot be earlier than the prediction time.';
 $string['revealposition'] = 'Result reveal time';
 $string['revealposition_help'] = 'Time when the actual outcome becomes available. Leave blank to use prediction time + 10 seconds.';
 $string['savereflection'] = 'Save reflection';
@@ -132,6 +150,7 @@ $string['student'] = 'Student';
 $string['studentdetails'] = 'Student details';
 $string['submitprediction'] = 'Submit prediction';
 $string['timeline'] = 'Prediction timeline';
+$string['true'] = 'True';
 $string['type:multichoice'] = 'Multiple choice';
 $string['type:open'] = 'Open response';
 $string['type:outcomes'] = 'Possible outcomes';
@@ -156,38 +175,3 @@ $string['viewdetails'] = 'View details';
 $string['watchedpercent'] = 'Watched';
 $string['watchedpercentvalue'] = 'Watched: {$a}%';
 $string['yourprogress'] = 'Your progress';
-$string['false'] = 'False';
-$string['true'] = 'True';
-$string['completionrules'] = 'Completion rules';
-
-$string['errormaxfiles'] = 'Only one file can be uploaded.';
-
-$string['eventpredictionsubmitted'] = 'Prediction submitted';
-
-$string['eventreflectionsubmitted'] = 'Reflection submitted';
-
-$string['eventpredictiongraded'] = 'Prediction graded';
-
-$string['eventpointcreated'] = 'Prediction point created';
-
-$string['eventpointupdated'] = 'Prediction point updated';
-
-$string['eventpointdeleted'] = 'Prediction point deleted';
-
-$string['optionsrequired'] = 'Add at least one response option.';
-
-$string['invalidcorrectanswer'] = 'The correct answer must match one of the option keys.';
-
-$string['revealbeforeprediction'] = 'The reveal time cannot be earlier than the prediction time.';
-
-$string['resetuserdata'] = 'Delete Video Prediction responses, reflections, progress and grades';
-
-$string['hlsunsupported'] = 'This browser cannot play this HLS stream.';
-
-$string['privacy:metadata:responses:responsejson'] = 'Structured response data.';
-
-$string['privacy:metadata:responses:gradedby'] = 'Identifier of the user who manually graded the prediction.';
-
-$string['privacy:metadata:responses:timemodified'] = 'Time when the response or grade was last modified.';
-
-$string['privacy:gradingpath'] = 'Manual grading activity';
