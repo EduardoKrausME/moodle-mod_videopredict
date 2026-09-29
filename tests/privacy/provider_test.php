@@ -90,8 +90,8 @@ final class provider_test extends provider_testcase {
 
         $users = new userlist($context, 'mod_videopredict');
         provider::get_users_in_context($users);
-        $this->assertContains($student->id, $users->get_userids());
-        $this->assertContains($teacher->id, $users->get_userids());
+        $this->assertContainsEquals($student->id, $users->get_userids());
+        $this->assertContainsEquals($teacher->id, $users->get_userids());
 
         $approved = new approved_userlist($context, 'mod_videopredict', [$teacher->id]);
         provider::delete_data_for_users($approved);
