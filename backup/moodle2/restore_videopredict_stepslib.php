@@ -39,8 +39,7 @@ class restore_videopredict_activity_structure_step extends restore_activity_stru
             $paths[] = new restore_path_element('videopredict_response', '/activity/videopredict/points/point/responses/response');
             $paths[] = new restore_path_element('videopredict_progress', '/activity/videopredict/progresses/progress');
         }
-        // Validator compatibility note: backup steps use prepare_activity_structure().
-        return $paths;
+        return $this->prepare_activity_structure($paths);
     }
 
     /**
@@ -53,11 +52,9 @@ class restore_videopredict_activity_structure_step extends restore_activity_stru
         global $DB;
         $data = (object)$data;
         $data->course = $this->get_courseid();
-        $oldid = $data->id;
         unset($data->id);
         $newid = $DB->insert_record('videopredict', $data);
         $this->apply_activity_instance($newid);
-        $this->set_mapping('videopredict', $oldid, $newid, true);
     }
 
     /**
