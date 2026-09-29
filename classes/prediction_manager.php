@@ -206,7 +206,7 @@ class prediction_manager {
         foreach ($responses as $response) {
             if ($point->responsetype === 'open') {
                 $response->awarded = min((float)$point->points, max(0.0, (float)$response->awarded));
-            } elseif ((string)$point->correctanswer === '') {
+            } else if ((string)$point->correctanswer === '') {
                 $response->iscorrect = -1;
                 $response->awarded = 0.0;
                 $response->gradedby = 0;
