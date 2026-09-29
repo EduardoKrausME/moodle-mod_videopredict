@@ -110,7 +110,7 @@ class provider implements
      */
     public static function get_users_in_context(userlist $userlist): void {
         $context = $userlist->get_context();
-        if ($context->contextlevel !== CONTEXT_MODULE) {
+        if (!$context instanceof \context_module) {
             return;
         }
 
@@ -219,7 +219,7 @@ class provider implements
      */
     public static function delete_data_for_all_users_in_context(\context $context): void {
         global $DB;
-        if ($context->contextlevel !== CONTEXT_MODULE) {
+        if (!$context instanceof \context_module) {
             return;
         }
         $cm = get_coursemodule_from_id('videopredict', $context->instanceid, 0, false, IGNORE_MISSING);
@@ -244,7 +244,7 @@ class provider implements
         global $DB;
 
         $context = $userlist->get_context();
-        if ($context->contextlevel !== CONTEXT_MODULE) {
+        if (!$context instanceof \context_module) {
             return;
         }
 
