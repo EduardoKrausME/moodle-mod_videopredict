@@ -5,6 +5,14 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Privacy provider tests.
@@ -27,6 +35,8 @@ use core_privacy\tests\provider_testcase;
 final class provider_test extends provider_testcase {
     /**
      * Graders are included in Privacy API discovery and deletion anonymises gradedby.
+     *
+     * @coversNothing
      */
     public function test_grader_is_discovered_and_anonymised(): void {
         global $DB;
