@@ -25,7 +25,7 @@
 /**
  * Restore task.
  */
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot . '/mod/videopredict/backup/moodle2/restore_videopredict_stepslib.php');
 
 /**
