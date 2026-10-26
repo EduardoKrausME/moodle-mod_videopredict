@@ -25,11 +25,6 @@ learner to predict what will happen before playback can continue.
 
 Moodle 4.4 or later (2024042200), PHP version supported by that Moodle release.
 
-## Installation
-
-Install the ZIP through Site administration > Plugins > Install plugins, or extract the `videopredict` directory
-into `mod/`.
-
 ## License
 
 GNU GPL v3 or later.
