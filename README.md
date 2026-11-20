@@ -1,4 +1,4 @@
-# mod_videopredict — Video Prediction
+# mod_videopredict - Video Prediction
 
 Moodle activity module for prediction-based video learning. The video pauses at teacher-defined moments and asks the
 learner to predict what will happen before playback can continue.
